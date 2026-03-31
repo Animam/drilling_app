@@ -55,6 +55,108 @@ class Locations extends Table {
   TextColumn get updatedAt => text().nullable()();
 }
 
+
+class Feuilles extends Table {
+  IntColumn get localId => integer().autoIncrement()();
+  TextColumn get mobileUuid => text().unique()();
+  IntColumn get odooId => integer().nullable()();
+
+  IntColumn get nomProjetOdooId => integer()();
+  TextColumn get quart => text()();
+  TextColumn get dateForage => text()();
+
+  IntColumn get foreuseOdooId => integer().nullable()();
+  IntColumn get locationOdooId => integer().nullable()();
+
+  IntColumn get hourMeter => integer().nullable()();
+  TextColumn get fuelMeter => text().nullable()();
+  TextColumn get remarks => text().nullable()();
+
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  BoolColumn get isVisible => boolean().withDefault(const Constant(true))();
+
+  TextColumn get createdAt => text()();
+  TextColumn get updatedAt => text()();
+}
+
+class FeuilleLignes extends Table {
+  IntColumn get localId => integer().autoIncrement()();
+  TextColumn get mobileUuid => text().unique()();
+  IntColumn get odooId => integer().nullable()();
+
+  IntColumn get feuilleLocalId => integer()();
+
+  TextColumn get item => text()();
+  IntColumn get tacheOdooId => integer().nullable()();
+  TextColumn get holeNo => text().nullable()();
+  TextColumn get note => text().nullable()();
+
+  RealColumn get dateD => real().nullable()();
+  RealColumn get dateF => real().nullable()();
+  RealColumn get rr => real().nullable()();
+
+  IntColumn get distance => integer().nullable()();
+  IntColumn get fromDim => integer().nullable()();
+  IntColumn get toDim => integer().nullable()();
+  IntColumn get totalDim => integer().nullable()();
+
+  IntColumn get sequence => integer().withDefault(const Constant(10))();
+
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  BoolColumn get isVisible => boolean().withDefault(const Constant(true))();
+
+  TextColumn get createdAt => text()();
+  TextColumn get updatedAt => text()();
+}
+
+class FeuilleFuels extends Table {
+  IntColumn get localId => integer().autoIncrement()();
+  TextColumn get mobileUuid => text().unique()();
+  IntColumn get odooId => integer().nullable()();
+
+  IntColumn get feuilleLocalId => integer()();
+
+  IntColumn get compresseurOdooId => integer().nullable()();
+  RealColumn get qytFuel => real().withDefault(const Constant(0.0))();
+
+  RealColumn get dateDEqui => real().nullable()();
+  RealColumn get dateFEqui => real().nullable()();
+  RealColumn get dateDRavi => real().nullable()();
+  RealColumn get dateFRavi => real().nullable()();
+
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  BoolColumn get isVisible => boolean().withDefault(const Constant(true))();
+
+  TextColumn get createdAt => text()();
+  TextColumn get updatedAt => text()();
+}
+
+
+class FeuilleEmployes extends Table {
+  IntColumn get localId => integer().autoIncrement()();
+  TextColumn get mobileUuid => text().unique()();
+  IntColumn get odooId => integer().nullable()();
+
+  IntColumn get feuilleLocalId => integer()();
+  IntColumn get employeeOdooId => integer()();
+
+  TextColumn get fonction => text().nullable()();
+  TextColumn get observation => text().nullable()();
+  TextColumn get dateEmp => text().nullable()();
+
+  TextColumn get dateDebut => text().nullable()();
+  TextColumn get dateFin => text().nullable()();
+  RealColumn get difference => real().nullable()();
+
+  BoolColumn get absent => boolean().withDefault(const Constant(false))();
+
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  BoolColumn get isVisible => boolean().withDefault(const Constant(true))();
+
+  TextColumn get createdAt => text()();
+  TextColumn get updatedAt => text()();
+}
+
 // LazyDatabase _openConnection() {
 //   return LazyDatabase(() async {
 //     final dir = await getApplicationDocumentsDirectory();
@@ -73,8 +175,6 @@ LazyDatabase _openConnection() {
 }
 
 
-
-
 @DriftDatabase(
   tables: [
     Projects,
@@ -82,6 +182,10 @@ LazyDatabase _openConnection() {
     Equipments,
     Tasks,
     Locations,
+    Feuilles,
+    FeuilleLignes,
+    FeuilleFuels,
+    FeuilleEmployes,
   ],
 )
 
@@ -91,7 +195,13 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 5;
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (Migrator m) async => m.createAll(),
+    onUpgrade: (Migrator m, int from, int to) async => m.createAll(),
+  );
+
 
   Future<void> saveProjects(List<Map<String, dynamic>> items) async {
     await batch((batch) {
@@ -184,6 +294,185 @@ class AppDatabase extends _$AppDatabase {
         mode: InsertMode.insertOrReplace,
       );
     });
+  }
+
+  Future<int> saveLocalFeuille({
+    required String mobileUuid,
+    required int nomProjetOdooId,
+    required String quart,
+    required String dateForage,
+    int? foreuseOdooId,
+    int? locationOdooId,
+    int? hourMeter,
+    String? fuelMeter,
+    String? remarks,
+  }) {
+    final now = DateTime.now().toIso8601String();
+
+    return into(feuilles).insert(
+      FeuillesCompanion.insert(
+        mobileUuid: mobileUuid,
+        nomProjetOdooId: nomProjetOdooId,
+        quart: quart,
+        dateForage: dateForage,
+        foreuseOdooId: Value(foreuseOdooId),
+        locationOdooId: Value(locationOdooId),
+        hourMeter: Value(hourMeter),
+        fuelMeter: Value(fuelMeter),
+        remarks: Value(remarks),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
+
+  Future<int> saveLocalFeuilleLigne({
+    required int feuilleLocalId,
+    required String mobileUuid,
+    required String item,
+    int? tacheOdooId,
+    String? holeNo,
+    String? note,
+    double? dateD,
+    double? dateF,
+    double? rr,
+    int? distance,
+    int? fromDim,
+    int? toDim,
+    int? totalDim,
+    int? sequence,
+  }) {
+    final now = DateTime.now().toIso8601String();
+
+    return into(feuilleLignes).insert(
+      FeuilleLignesCompanion.insert(
+        feuilleLocalId: feuilleLocalId,
+        mobileUuid: mobileUuid,
+        item: item,
+        tacheOdooId: Value(tacheOdooId),
+        holeNo: Value(holeNo),
+        note: Value(note),
+        dateD: Value(dateD),
+        dateF: Value(dateF),
+        rr: Value(rr),
+        distance: Value(distance),
+        fromDim: Value(fromDim),
+        toDim: Value(toDim),
+        totalDim: Value(totalDim),
+        sequence: Value(sequence ?? 10),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
+
+
+  Future<int> saveLocalFeuilleFuel({
+    required int feuilleLocalId,
+    required String mobileUuid,
+    int? compresseurOdooId,
+    required double qytFuel,
+    double? dateDEqui,
+    double? dateFEqui,
+    double? dateDRavi,
+    double? dateFRavi,
+  }) {
+    final now = DateTime.now().toIso8601String();
+
+    return into(feuilleFuels).insert(
+      FeuilleFuelsCompanion.insert(
+        feuilleLocalId: feuilleLocalId,
+        mobileUuid: mobileUuid,
+        compresseurOdooId: Value(compresseurOdooId),
+        qytFuel: Value(qytFuel),
+        dateDEqui: Value(dateDEqui),
+        dateFEqui: Value(dateFEqui),
+        dateDRavi: Value(dateDRavi),
+        dateFRavi: Value(dateFRavi),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
+
+  Future<int> saveLocalFeuilleEmploye({
+    required int feuilleLocalId,
+    required String mobileUuid,
+    required int employeeOdooId,
+    String? fonction,
+    String? observation,
+    String? dateEmp,
+    String? dateDebut,
+    String? dateFin,
+    double? difference,
+    bool absent = false,
+  }) {
+    final now = DateTime.now().toIso8601String();
+
+    return into(feuilleEmployes).insert(
+      FeuilleEmployesCompanion.insert(
+        feuilleLocalId: feuilleLocalId,
+        mobileUuid: mobileUuid,
+        employeeOdooId: employeeOdooId,
+        fonction: Value(fonction),
+        observation: Value(observation),
+        dateEmp: Value(dateEmp),
+        dateDebut: Value(dateDebut),
+        dateFin: Value(dateFin),
+        difference: Value(difference),
+        absent: Value(absent),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
+
+  Future<List<FeuilleEmploye>> getEmployesByFeuille(int feuilleLocalId) {
+    return (select(feuilleEmployes)
+          ..where((tbl) =>
+              tbl.feuilleLocalId.equals(feuilleLocalId) &
+              tbl.isVisible.equals(true))
+          ..orderBy([(tbl) => OrderingTerm.desc(tbl.updatedAt)]))
+        .get();
+  }
+
+
+  Future<List<FeuilleFuel>> getFuelsByFeuille(int feuilleLocalId) {
+    return (select(feuilleFuels)
+          ..where((tbl) =>
+              tbl.feuilleLocalId.equals(feuilleLocalId) &
+              tbl.isVisible.equals(true))
+          ..orderBy([(tbl) => OrderingTerm.desc(tbl.updatedAt)]))
+        .get();
+  }
+
+  Future<double> getTotalFuelByFeuille(int feuilleLocalId) async {
+    final rows = await (select(feuilleFuels)
+          ..where((tbl) =>
+              tbl.feuilleLocalId.equals(feuilleLocalId) &
+              tbl.isVisible.equals(true)))
+        .get();
+
+    return rows.fold<double>(0.0, (sum, row) => sum + row.qytFuel);
+  }
+
+
+  Future<List<FeuilleLigne>> getLignesByFeuille(int feuilleLocalId) {
+    return (select(feuilleLignes)
+          ..where((tbl) =>
+              tbl.feuilleLocalId.equals(feuilleLocalId) &
+              tbl.isVisible.equals(true))
+          ..orderBy([(tbl) => OrderingTerm.asc(tbl.sequence)]))
+        .get();
+  }
+
+
+
+  Future<List<Feuille>> getVisibleFeuilles() {
+    return (select(feuilles)
+          ..where((tbl) => tbl.isVisible.equals(true))
+          ..orderBy([(tbl) => OrderingTerm.desc(tbl.updatedAt)]))
+        .get();
   }
 
 

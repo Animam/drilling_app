@@ -11,7 +11,7 @@ class AuthApi {
     required String password,
   }) async {
     final response = await _dio.post(
-      '/web/session/authenticate',
+      '/mobile/auth/login',
       data: {
         'jsonrpc': '2.0',
         'params': {

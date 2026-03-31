@@ -98,9 +98,11 @@ class _BootstrapScreenState extends ConsumerState<BootstrapScreen> {
  */
 
 
+import 'package:drilling_app/features/auth/presentation/feuille_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../auth/presentation/feuille_form_screen.dart';
 import '../../../shared/providers/api_providers.dart';
 import '../../../shared/providers/app_providers.dart';
 
@@ -213,6 +215,34 @@ class _BootstrapScreenState extends ConsumerState<BootstrapScreen> {
                 child: _loading
                     ? const CircularProgressIndicator()
                     : const Text('Charger et enregistrer le bootstrap'),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const FeuilleFormScreen(),
+                    ),
+                  );
+                },
+                child: const Text('Ouvrir le formulaire de feuille'),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const FeuilleListScreen(),
+                    ),
+                  );
+                },
+                child: const Text('Ouvrir la list de feuille'),
               ),
             ),
             const SizedBox(height: 16),
