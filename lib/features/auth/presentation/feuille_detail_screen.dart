@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/providers/app_providers.dart';
 
-
 class FeuilleDetailScreen extends ConsumerStatefulWidget {
   const FeuilleDetailScreen({
     super.key,
@@ -20,7 +19,10 @@ class FeuilleDetailScreen extends ConsumerStatefulWidget {
   ConsumerState<FeuilleDetailScreen> createState() => _FeuilleDetailScreenState();
 }
 
-class _FeuilleDetailScreenState extends ConsumerState<FeuilleDetailScreen> {
+class _FeuilleDetailScreenState extends ConsumerState<FeuilleDetailScreen>
+    with TickerProviderStateMixin {
+  late TabController _tabController;
+
   Feuille? _feuille;
   int _lignesCount = 0;
   int _fuelCount = 0;
@@ -32,6 +34,19 @@ class _FeuilleDetailScreenState extends ConsumerState<FeuilleDetailScreen> {
 
   String? _error;
   bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 6, vsync: this);
+    Future.microtask(_load);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   Future<void> _load() async {
     setState(() {
@@ -74,186 +89,217 @@ class _FeuilleDetailScreenState extends ConsumerState<FeuilleDetailScreen> {
     }
   }
 
-  Widget _buildInfoCard() {
-    final feuille = _feuille;
-    if (feuille == null) return const SizedBox.shrink();
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildInfoRow('Projet ID', feuille.nomProjetOdooId.toString()),
-            _buildInfoRow('Quart', feuille.quart),
-            _buildInfoRow('Date forage', feuille.dateForage),
-            _buildInfoRow('Foreuse ID', feuille.foreuseOdooId?.toString() ?? '-'),
-            _buildInfoRow('Location ID', feuille.locationOdooId?.toString() ?? '-'),
-            _buildInfoRow('Hour meter', feuille.hourMeter?.toString() ?? '-'),
-            _buildInfoRow('Fuel meter', feuille.fuelMeter ?? '-'),
-            _buildInfoRow('Statut sync', feuille.syncStatus),
-            _buildInfoRow('Remarques', feuille.remarks ?? '-'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTotalsCard() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildInfoRow('Fuel supplied', _totalFuel.toStringAsFixed(2)),
-            _buildInfoRow('Compteur d\'horaires de forage', _totalRr.toStringAsFixed(2)),
-            _buildInfoRow('Total meters drill', _totalMeters.toString()),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionButton({
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      child: ListTile(
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildTopData(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 6),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            flex: 4,
+          SizedBox(
+            width: 110,
             child: Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
             ),
           ),
+          const SizedBox(width: 5),
           Expanded(
-            flex: 5,
-            child: Text(value),
+            child: Container(
+              height: 30,
+              color: Colors.black.withOpacity(0.05),
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.only(left: 8),
+              child: Text(
+                value,
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(_load);
+  Widget _buildHeaderSection() {
+    final feuille = _feuille;
+    if (feuille == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              children: [
+                _buildTopData("Projet", feuille.nomProjetOdooId.toString()),
+                _buildTopData("Quart", feuille.quart),
+                _buildTopData("Date", feuille.dateForage),
+                _buildTopData("Foreuse", feuille.foreuseOdooId?.toString() ?? "-"),
+                _buildTopData("Location", feuille.locationOdooId?.toString() ?? "-"),
+                _buildTopData("Fuel meter", feuille.fuelMeter ?? "-"),
+              ],
+            ),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              children: [
+                _buildTopData("Hour meter", feuille.hourMeter?.toString() ?? "-"),
+                _buildTopData("Total Drill", _totalMeters.toString()),
+                _buildTopData("Drill Hours", _totalRr.toStringAsFixed(2)),
+                _buildTopData("Fuel supplied", _totalFuel.toStringAsFixed(2)),
+                _buildTopData("Employes", _employesCount.toString()),
+                _buildTopData("Statut", feuille.syncStatus),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabBar() {
+    return Container(
+      color: Colors.white.withOpacity(0.8),
+      child: TabBar(
+        controller: _tabController,
+        isScrollable: true,
+        labelColor: const Color(0xFFF18E28),
+        indicatorColor: const Color(0xFF00C7C9),
+        tabs: const [
+          Tab(text: 'Lignes de temps'),
+          Tab(text: 'Employes'),
+          Tab(text: 'Materiels'),
+          Tab(text: 'Equip. Aux / Fuel'),
+          Tab(text: 'Security'),
+          Tab(text: 'Frais'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionLauncher({
+    required String title,
+    required String subtitle,
+    required VoidCallback onPressed,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(subtitle, textAlign: TextAlign.center),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: onPressed,
+              child: const Text('Ouvrir'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabContent() {
+    return TabBarView(
+      controller: _tabController,
+      children: [
+        _buildSectionLauncher(
+          title: 'Lignes de temps',
+          subtitle: '$_lignesCount ligne(s) enregistree(s)',
+          onPressed: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => FeuilleLignesScreen(
+                  feuilleLocalId: widget.feuilleLocalId,
+                ),
+              ),
+            );
+            _load();
+          },
+        ),
+        _buildSectionLauncher(
+          title: 'Employes',
+          subtitle: '$_employesCount employe(s) enregistre(s)',
+          onPressed: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => FeuilleEmployesScreen(
+                  feuilleLocalId: widget.feuilleLocalId,
+                ),
+              ),
+            );
+            _load();
+          },
+        ),
+        const Center(
+          child: Text('Materiels - a brancher ensuite'),
+        ),
+        _buildSectionLauncher(
+          title: 'Equip. Aux / Fuel',
+          subtitle: '$_fuelCount ligne(s) fuel - ${_totalFuel.toStringAsFixed(2)} L',
+          onPressed: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => FeuilleFuelsScreen(
+                  feuilleLocalId: widget.feuilleLocalId,
+                ),
+              ),
+            );
+            _load();
+          },
+        ),
+        const Center(
+          child: Text('Security - a brancher ensuite'),
+        ),
+        const Center(
+          child: Text('Frais - a brancher ensuite'),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detail feuille'),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFDF8E1), Color(0xFFF5F5F5)],
+        ),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(
-                  child: Text(
-                    _error!,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text(
+            'Drilling Report Pro',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+        ),
+        body: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  )
+                : Column(
                     children: [
-                      const Text(
-                        'Informations generales',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildInfoCard(),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Totaux calcules localement',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildTotalsCard(),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Sections',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildSectionButton(
-                        title: 'Lignes de temps',
-                        subtitle: '$_lignesCount ligne(s)',
-                        onTap: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => FeuilleLignesScreen(
-                                feuilleLocalId: widget.feuilleLocalId,
-                              ),
-                            ),
-                          );
-                          _load();
-                        },
-                      ),
-                      _buildSectionButton(
-                        title: 'Fuel supplied',
-                        subtitle: '$_fuelCount ligne(s) - ${_totalFuel.toStringAsFixed(2)} L',
-                        onTap: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => FeuilleFuelsScreen(
-                                feuilleLocalId: widget.feuilleLocalId,
-                              ),
-                            ),
-                          );
-                          _load();
-                        },
-                      ),
-                      _buildSectionButton(
-                        title: 'Employes',
-                        subtitle: '$_employesCount employe(s)',
-                        onTap: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => FeuilleEmployesScreen(
-                                feuilleLocalId: widget.feuilleLocalId,
-                              ),
-                            ),
-                          );
-                          _load();
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Etape suivante: marquer la feuille prete pour sync'),
-                              ),
-                            );
-                          },
-                          child: const Text('Marquer pret pour synchronisation'),
-                        ),
-                      ),
+                      _buildHeaderSection(),
+                      _buildTabBar(),
+                      Expanded(child: _buildTabContent()),
                     ],
                   ),
-                ),
+      ),
     );
   }
 }

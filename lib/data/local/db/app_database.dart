@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 part 'app_database.g.dart';
 
@@ -11,6 +10,8 @@ class Projects extends Table {
   IntColumn get localId => integer().autoIncrement()();
   IntColumn get odooId => integer().unique()();
   TextColumn get name => text()();
+  IntColumn get partnerOdooId => integer().nullable()();
+  TextColumn get partnerName => text().nullable()();
   RealColumn get dateDJ => real().nullable()();
   RealColumn get dateDN => real().nullable()();
   BoolColumn get active => boolean().withDefault(const Constant(true))();
@@ -54,7 +55,6 @@ class Locations extends Table {
   TextColumn get name => text()();
   TextColumn get updatedAt => text().nullable()();
 }
-
 
 class Feuilles extends Table {
   IntColumn get localId => integer().autoIncrement()();
@@ -131,7 +131,6 @@ class FeuilleFuels extends Table {
   TextColumn get updatedAt => text()();
 }
 
-
 class FeuilleEmployes extends Table {
   IntColumn get localId => integer().autoIncrement()();
   TextColumn get mobileUuid => text().unique()();
@@ -157,6 +156,26 @@ class FeuilleEmployes extends Table {
   TextColumn get updatedAt => text()();
 }
 
+class FeuilleMateriels extends Table {
+  IntColumn get localId => integer().autoIncrement()();
+  TextColumn get mobileUuid => text().unique()();
+  IntColumn get odooId => integer().nullable()();
+
+  IntColumn get feuilleLocalId => integer()();
+
+  TextColumn get description => text().nullable()();
+  TextColumn get serialNumber => text().nullable()();
+  RealColumn get quantity => real().nullable()();
+  TextColumn get observation => text().nullable()();
+  TextColumn get status => text().nullable()();
+
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  BoolColumn get isVisible => boolean().withDefault(const Constant(true))();
+
+  TextColumn get createdAt => text()();
+  TextColumn get updatedAt => text()();
+}
+
 // LazyDatabase _openConnection() {
 //   return LazyDatabase(() async {
 //     final dir = await getApplicationDocumentsDirectory();
@@ -166,14 +185,15 @@ class FeuilleEmployes extends Table {
 // }
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final dbFolder = Directory(r'C:\Users\Parfait-SEDOGO\DevOps\forages_mobile_data');
+    final dbFolder = Directory(
+      r'C:\Users\Parfait-SEDOGO\DevOps\forages_mobile_data',
+    );
     await dbFolder.create(recursive: true);
 
     final file = File(p.join(dbFolder.path, 'forages_mobile.sqlite'));
     return NativeDatabase.createInBackground(file);
   });
 }
-
 
 @DriftDatabase(
   tables: [
@@ -186,22 +206,19 @@ LazyDatabase _openConnection() {
     FeuilleLignes,
     FeuilleFuels,
     FeuilleEmployes,
+    FeuilleMateriels,
   ],
 )
-
-
-
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (Migrator m) async => m.createAll(),
     onUpgrade: (Migrator m, int from, int to) async => m.createAll(),
   );
-
 
   Future<void> saveProjects(List<Map<String, dynamic>> items) async {
     await batch((batch) {
@@ -211,6 +228,8 @@ class AppDatabase extends _$AppDatabase {
           return ProjectsCompanion.insert(
             odooId: (item['odoo_id'] as num).toInt(),
             name: item['name']?.toString() ?? '',
+            partnerOdooId: Value((item['partner_odoo_id'] as num?)?.toInt()),
+            partnerName: Value(item['partner_name']?.toString()),
             dateDJ: Value((item['date_d_j'] as num?)?.toDouble()),
             dateDN: Value((item['date_d_n'] as num?)?.toDouble()),
             active: Value(item['active'] == true),
@@ -366,7 +385,6 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-
   Future<int> saveLocalFeuilleFuel({
     required int feuilleLocalId,
     required String mobileUuid,
@@ -427,46 +445,87 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  Future<int> saveLocalFeuilleMateriel({
+    required int feuilleLocalId,
+    required String mobileUuid,
+    String? description,
+    String? serialNumber,
+    double? quantity,
+    String? observation,
+    String? status,
+  }) {
+    final now = DateTime.now().toIso8601String();
+
+    return into(feuilleMateriels).insert(
+      FeuilleMaterielsCompanion.insert(
+        feuilleLocalId: feuilleLocalId,
+        mobileUuid: mobileUuid,
+        description: Value(description),
+        serialNumber: Value(serialNumber),
+        quantity: Value(quantity),
+        observation: Value(observation),
+        status: Value(status),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
+
   Future<List<FeuilleEmploye>> getEmployesByFeuille(int feuilleLocalId) {
     return (select(feuilleEmployes)
-          ..where((tbl) =>
-              tbl.feuilleLocalId.equals(feuilleLocalId) &
-              tbl.isVisible.equals(true))
+          ..where(
+            (tbl) =>
+                tbl.feuilleLocalId.equals(feuilleLocalId) &
+                tbl.isVisible.equals(true),
+          )
           ..orderBy([(tbl) => OrderingTerm.desc(tbl.updatedAt)]))
         .get();
   }
 
+  Future<List<FeuilleMateriel>> getMaterielsByFeuille(int feuilleLocalId) {
+    return (select(feuilleMateriels)
+          ..where(
+            (tbl) =>
+                tbl.feuilleLocalId.equals(feuilleLocalId) &
+                tbl.isVisible.equals(true),
+          )
+          ..orderBy([(tbl) => OrderingTerm.desc(tbl.updatedAt)]))
+        .get();
+  }
 
   Future<List<FeuilleFuel>> getFuelsByFeuille(int feuilleLocalId) {
     return (select(feuilleFuels)
-          ..where((tbl) =>
-              tbl.feuilleLocalId.equals(feuilleLocalId) &
-              tbl.isVisible.equals(true))
+          ..where(
+            (tbl) =>
+                tbl.feuilleLocalId.equals(feuilleLocalId) &
+                tbl.isVisible.equals(true),
+          )
           ..orderBy([(tbl) => OrderingTerm.desc(tbl.updatedAt)]))
         .get();
   }
 
   Future<double> getTotalFuelByFeuille(int feuilleLocalId) async {
-    final rows = await (select(feuilleFuels)
-          ..where((tbl) =>
-              tbl.feuilleLocalId.equals(feuilleLocalId) &
-              tbl.isVisible.equals(true)))
-        .get();
+    final rows =
+        await (select(feuilleFuels)..where(
+              (tbl) =>
+                  tbl.feuilleLocalId.equals(feuilleLocalId) &
+                  tbl.isVisible.equals(true),
+            ))
+            .get();
 
     return rows.fold<double>(0.0, (sum, row) => sum + row.qytFuel);
   }
 
-
   Future<List<FeuilleLigne>> getLignesByFeuille(int feuilleLocalId) {
     return (select(feuilleLignes)
-          ..where((tbl) =>
-              tbl.feuilleLocalId.equals(feuilleLocalId) &
-              tbl.isVisible.equals(true))
+          ..where(
+            (tbl) =>
+                tbl.feuilleLocalId.equals(feuilleLocalId) &
+                tbl.isVisible.equals(true),
+          )
           ..orderBy([(tbl) => OrderingTerm.asc(tbl.sequence)]))
         .get();
   }
-
-
 
   Future<List<Feuille>> getVisibleFeuilles() {
     return (select(feuilles)
@@ -475,16 +534,9 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
-
-
-
   Future<List<Project>> getAllProjects() => select(projects).get();
   Future<List<Employee>> getAllEmployees() => select(employees).get();
   Future<List<Equipment>> getAllEquipments() => select(equipments).get();
   Future<List<Task>> getAllTasks() => select(tasks).get();
   Future<List<Location>> getAllLocations() => select(locations).get();
-
-  
-
-  }
-
+}

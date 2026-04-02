@@ -42,6 +42,28 @@ class $ProjectsTable extends Projects with TableInfo<$ProjectsTable, Project> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _partnerOdooIdMeta = const VerificationMeta(
+    'partnerOdooId',
+  );
+  @override
+  late final GeneratedColumn<int> partnerOdooId = GeneratedColumn<int>(
+    'partner_odoo_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _partnerNameMeta = const VerificationMeta(
+    'partnerName',
+  );
+  @override
+  late final GeneratedColumn<String> partnerName = GeneratedColumn<String>(
+    'partner_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _dateDJMeta = const VerificationMeta('dateDJ');
   @override
   late final GeneratedColumn<double> dateDJ = GeneratedColumn<double>(
@@ -89,6 +111,8 @@ class $ProjectsTable extends Projects with TableInfo<$ProjectsTable, Project> {
     localId,
     odooId,
     name,
+    partnerOdooId,
+    partnerName,
     dateDJ,
     dateDN,
     active,
@@ -127,6 +151,24 @@ class $ProjectsTable extends Projects with TableInfo<$ProjectsTable, Project> {
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('partner_odoo_id')) {
+      context.handle(
+        _partnerOdooIdMeta,
+        partnerOdooId.isAcceptableOrUnknown(
+          data['partner_odoo_id']!,
+          _partnerOdooIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('partner_name')) {
+      context.handle(
+        _partnerNameMeta,
+        partnerName.isAcceptableOrUnknown(
+          data['partner_name']!,
+          _partnerNameMeta,
+        ),
+      );
     }
     if (data.containsKey('date_d_j')) {
       context.handle(
@@ -173,6 +215,14 @@ class $ProjectsTable extends Projects with TableInfo<$ProjectsTable, Project> {
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      partnerOdooId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}partner_odoo_id'],
+      ),
+      partnerName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}partner_name'],
+      ),
       dateDJ: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}date_d_j'],
@@ -202,6 +252,8 @@ class Project extends DataClass implements Insertable<Project> {
   final int localId;
   final int odooId;
   final String name;
+  final int? partnerOdooId;
+  final String? partnerName;
   final double? dateDJ;
   final double? dateDN;
   final bool active;
@@ -210,6 +262,8 @@ class Project extends DataClass implements Insertable<Project> {
     required this.localId,
     required this.odooId,
     required this.name,
+    this.partnerOdooId,
+    this.partnerName,
     this.dateDJ,
     this.dateDN,
     required this.active,
@@ -221,6 +275,12 @@ class Project extends DataClass implements Insertable<Project> {
     map['local_id'] = Variable<int>(localId);
     map['odoo_id'] = Variable<int>(odooId);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || partnerOdooId != null) {
+      map['partner_odoo_id'] = Variable<int>(partnerOdooId);
+    }
+    if (!nullToAbsent || partnerName != null) {
+      map['partner_name'] = Variable<String>(partnerName);
+    }
     if (!nullToAbsent || dateDJ != null) {
       map['date_d_j'] = Variable<double>(dateDJ);
     }
@@ -239,6 +299,12 @@ class Project extends DataClass implements Insertable<Project> {
       localId: Value(localId),
       odooId: Value(odooId),
       name: Value(name),
+      partnerOdooId: partnerOdooId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(partnerOdooId),
+      partnerName: partnerName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(partnerName),
       dateDJ: dateDJ == null && nullToAbsent
           ? const Value.absent()
           : Value(dateDJ),
@@ -261,6 +327,8 @@ class Project extends DataClass implements Insertable<Project> {
       localId: serializer.fromJson<int>(json['localId']),
       odooId: serializer.fromJson<int>(json['odooId']),
       name: serializer.fromJson<String>(json['name']),
+      partnerOdooId: serializer.fromJson<int?>(json['partnerOdooId']),
+      partnerName: serializer.fromJson<String?>(json['partnerName']),
       dateDJ: serializer.fromJson<double?>(json['dateDJ']),
       dateDN: serializer.fromJson<double?>(json['dateDN']),
       active: serializer.fromJson<bool>(json['active']),
@@ -274,6 +342,8 @@ class Project extends DataClass implements Insertable<Project> {
       'localId': serializer.toJson<int>(localId),
       'odooId': serializer.toJson<int>(odooId),
       'name': serializer.toJson<String>(name),
+      'partnerOdooId': serializer.toJson<int?>(partnerOdooId),
+      'partnerName': serializer.toJson<String?>(partnerName),
       'dateDJ': serializer.toJson<double?>(dateDJ),
       'dateDN': serializer.toJson<double?>(dateDN),
       'active': serializer.toJson<bool>(active),
@@ -285,6 +355,8 @@ class Project extends DataClass implements Insertable<Project> {
     int? localId,
     int? odooId,
     String? name,
+    Value<int?> partnerOdooId = const Value.absent(),
+    Value<String?> partnerName = const Value.absent(),
     Value<double?> dateDJ = const Value.absent(),
     Value<double?> dateDN = const Value.absent(),
     bool? active,
@@ -293,6 +365,10 @@ class Project extends DataClass implements Insertable<Project> {
     localId: localId ?? this.localId,
     odooId: odooId ?? this.odooId,
     name: name ?? this.name,
+    partnerOdooId: partnerOdooId.present
+        ? partnerOdooId.value
+        : this.partnerOdooId,
+    partnerName: partnerName.present ? partnerName.value : this.partnerName,
     dateDJ: dateDJ.present ? dateDJ.value : this.dateDJ,
     dateDN: dateDN.present ? dateDN.value : this.dateDN,
     active: active ?? this.active,
@@ -303,6 +379,12 @@ class Project extends DataClass implements Insertable<Project> {
       localId: data.localId.present ? data.localId.value : this.localId,
       odooId: data.odooId.present ? data.odooId.value : this.odooId,
       name: data.name.present ? data.name.value : this.name,
+      partnerOdooId: data.partnerOdooId.present
+          ? data.partnerOdooId.value
+          : this.partnerOdooId,
+      partnerName: data.partnerName.present
+          ? data.partnerName.value
+          : this.partnerName,
       dateDJ: data.dateDJ.present ? data.dateDJ.value : this.dateDJ,
       dateDN: data.dateDN.present ? data.dateDN.value : this.dateDN,
       active: data.active.present ? data.active.value : this.active,
@@ -316,6 +398,8 @@ class Project extends DataClass implements Insertable<Project> {
           ..write('localId: $localId, ')
           ..write('odooId: $odooId, ')
           ..write('name: $name, ')
+          ..write('partnerOdooId: $partnerOdooId, ')
+          ..write('partnerName: $partnerName, ')
           ..write('dateDJ: $dateDJ, ')
           ..write('dateDN: $dateDN, ')
           ..write('active: $active, ')
@@ -325,8 +409,17 @@ class Project extends DataClass implements Insertable<Project> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(localId, odooId, name, dateDJ, dateDN, active, updatedAt);
+  int get hashCode => Object.hash(
+    localId,
+    odooId,
+    name,
+    partnerOdooId,
+    partnerName,
+    dateDJ,
+    dateDN,
+    active,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -334,6 +427,8 @@ class Project extends DataClass implements Insertable<Project> {
           other.localId == this.localId &&
           other.odooId == this.odooId &&
           other.name == this.name &&
+          other.partnerOdooId == this.partnerOdooId &&
+          other.partnerName == this.partnerName &&
           other.dateDJ == this.dateDJ &&
           other.dateDN == this.dateDN &&
           other.active == this.active &&
@@ -344,6 +439,8 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
   final Value<int> localId;
   final Value<int> odooId;
   final Value<String> name;
+  final Value<int?> partnerOdooId;
+  final Value<String?> partnerName;
   final Value<double?> dateDJ;
   final Value<double?> dateDN;
   final Value<bool> active;
@@ -352,6 +449,8 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
     this.localId = const Value.absent(),
     this.odooId = const Value.absent(),
     this.name = const Value.absent(),
+    this.partnerOdooId = const Value.absent(),
+    this.partnerName = const Value.absent(),
     this.dateDJ = const Value.absent(),
     this.dateDN = const Value.absent(),
     this.active = const Value.absent(),
@@ -361,6 +460,8 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
     this.localId = const Value.absent(),
     required int odooId,
     required String name,
+    this.partnerOdooId = const Value.absent(),
+    this.partnerName = const Value.absent(),
     this.dateDJ = const Value.absent(),
     this.dateDN = const Value.absent(),
     this.active = const Value.absent(),
@@ -371,6 +472,8 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
     Expression<int>? localId,
     Expression<int>? odooId,
     Expression<String>? name,
+    Expression<int>? partnerOdooId,
+    Expression<String>? partnerName,
     Expression<double>? dateDJ,
     Expression<double>? dateDN,
     Expression<bool>? active,
@@ -380,6 +483,8 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
       if (localId != null) 'local_id': localId,
       if (odooId != null) 'odoo_id': odooId,
       if (name != null) 'name': name,
+      if (partnerOdooId != null) 'partner_odoo_id': partnerOdooId,
+      if (partnerName != null) 'partner_name': partnerName,
       if (dateDJ != null) 'date_d_j': dateDJ,
       if (dateDN != null) 'date_d_n': dateDN,
       if (active != null) 'active': active,
@@ -391,6 +496,8 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
     Value<int>? localId,
     Value<int>? odooId,
     Value<String>? name,
+    Value<int?>? partnerOdooId,
+    Value<String?>? partnerName,
     Value<double?>? dateDJ,
     Value<double?>? dateDN,
     Value<bool>? active,
@@ -400,6 +507,8 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
       localId: localId ?? this.localId,
       odooId: odooId ?? this.odooId,
       name: name ?? this.name,
+      partnerOdooId: partnerOdooId ?? this.partnerOdooId,
+      partnerName: partnerName ?? this.partnerName,
       dateDJ: dateDJ ?? this.dateDJ,
       dateDN: dateDN ?? this.dateDN,
       active: active ?? this.active,
@@ -418,6 +527,12 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
+    }
+    if (partnerOdooId.present) {
+      map['partner_odoo_id'] = Variable<int>(partnerOdooId.value);
+    }
+    if (partnerName.present) {
+      map['partner_name'] = Variable<String>(partnerName.value);
     }
     if (dateDJ.present) {
       map['date_d_j'] = Variable<double>(dateDJ.value);
@@ -440,6 +555,8 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
           ..write('localId: $localId, ')
           ..write('odooId: $odooId, ')
           ..write('name: $name, ')
+          ..write('partnerOdooId: $partnerOdooId, ')
+          ..write('partnerName: $partnerName, ')
           ..write('dateDJ: $dateDJ, ')
           ..write('dateDN: $dateDN, ')
           ..write('active: $active, ')
@@ -5880,6 +5997,779 @@ class FeuilleEmployesCompanion extends UpdateCompanion<FeuilleEmploye> {
   }
 }
 
+class $FeuilleMaterielsTable extends FeuilleMateriels
+    with TableInfo<$FeuilleMaterielsTable, FeuilleMateriel> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FeuilleMaterielsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta = const VerificationMeta(
+    'localId',
+  );
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+    'local_id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _mobileUuidMeta = const VerificationMeta(
+    'mobileUuid',
+  );
+  @override
+  late final GeneratedColumn<String> mobileUuid = GeneratedColumn<String>(
+    'mobile_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _odooIdMeta = const VerificationMeta('odooId');
+  @override
+  late final GeneratedColumn<int> odooId = GeneratedColumn<int>(
+    'odoo_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _feuilleLocalIdMeta = const VerificationMeta(
+    'feuilleLocalId',
+  );
+  @override
+  late final GeneratedColumn<int> feuilleLocalId = GeneratedColumn<int>(
+    'feuille_local_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serialNumberMeta = const VerificationMeta(
+    'serialNumber',
+  );
+  @override
+  late final GeneratedColumn<String> serialNumber = GeneratedColumn<String>(
+    'serial_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _quantityMeta = const VerificationMeta(
+    'quantity',
+  );
+  @override
+  late final GeneratedColumn<double> quantity = GeneratedColumn<double>(
+    'quantity',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _observationMeta = const VerificationMeta(
+    'observation',
+  );
+  @override
+  late final GeneratedColumn<String> observation = GeneratedColumn<String>(
+    'observation',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _isVisibleMeta = const VerificationMeta(
+    'isVisible',
+  );
+  @override
+  late final GeneratedColumn<bool> isVisible = GeneratedColumn<bool>(
+    'is_visible',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_visible" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<String> createdAt = GeneratedColumn<String>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    localId,
+    mobileUuid,
+    odooId,
+    feuilleLocalId,
+    description,
+    serialNumber,
+    quantity,
+    observation,
+    status,
+    syncStatus,
+    isVisible,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'feuille_materiels';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FeuilleMateriel> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(
+        _localIdMeta,
+        localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta),
+      );
+    }
+    if (data.containsKey('mobile_uuid')) {
+      context.handle(
+        _mobileUuidMeta,
+        mobileUuid.isAcceptableOrUnknown(data['mobile_uuid']!, _mobileUuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mobileUuidMeta);
+    }
+    if (data.containsKey('odoo_id')) {
+      context.handle(
+        _odooIdMeta,
+        odooId.isAcceptableOrUnknown(data['odoo_id']!, _odooIdMeta),
+      );
+    }
+    if (data.containsKey('feuille_local_id')) {
+      context.handle(
+        _feuilleLocalIdMeta,
+        feuilleLocalId.isAcceptableOrUnknown(
+          data['feuille_local_id']!,
+          _feuilleLocalIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_feuilleLocalIdMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('serial_number')) {
+      context.handle(
+        _serialNumberMeta,
+        serialNumber.isAcceptableOrUnknown(
+          data['serial_number']!,
+          _serialNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(
+        _quantityMeta,
+        quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta),
+      );
+    }
+    if (data.containsKey('observation')) {
+      context.handle(
+        _observationMeta,
+        observation.isAcceptableOrUnknown(
+          data['observation']!,
+          _observationMeta,
+        ),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('is_visible')) {
+      context.handle(
+        _isVisibleMeta,
+        isVisible.isAcceptableOrUnknown(data['is_visible']!, _isVisibleMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  FeuilleMateriel map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FeuilleMateriel(
+      localId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}local_id'],
+      )!,
+      mobileUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mobile_uuid'],
+      )!,
+      odooId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}odoo_id'],
+      ),
+      feuilleLocalId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}feuille_local_id'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      serialNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}serial_number'],
+      ),
+      quantity: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}quantity'],
+      ),
+      observation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}observation'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
+      isVisible: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_visible'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FeuilleMaterielsTable createAlias(String alias) {
+    return $FeuilleMaterielsTable(attachedDatabase, alias);
+  }
+}
+
+class FeuilleMateriel extends DataClass implements Insertable<FeuilleMateriel> {
+  final int localId;
+  final String mobileUuid;
+  final int? odooId;
+  final int feuilleLocalId;
+  final String? description;
+  final String? serialNumber;
+  final double? quantity;
+  final String? observation;
+  final String? status;
+  final String syncStatus;
+  final bool isVisible;
+  final String createdAt;
+  final String updatedAt;
+  const FeuilleMateriel({
+    required this.localId,
+    required this.mobileUuid,
+    this.odooId,
+    required this.feuilleLocalId,
+    this.description,
+    this.serialNumber,
+    this.quantity,
+    this.observation,
+    this.status,
+    required this.syncStatus,
+    required this.isVisible,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    map['mobile_uuid'] = Variable<String>(mobileUuid);
+    if (!nullToAbsent || odooId != null) {
+      map['odoo_id'] = Variable<int>(odooId);
+    }
+    map['feuille_local_id'] = Variable<int>(feuilleLocalId);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || serialNumber != null) {
+      map['serial_number'] = Variable<String>(serialNumber);
+    }
+    if (!nullToAbsent || quantity != null) {
+      map['quantity'] = Variable<double>(quantity);
+    }
+    if (!nullToAbsent || observation != null) {
+      map['observation'] = Variable<String>(observation);
+    }
+    if (!nullToAbsent || status != null) {
+      map['status'] = Variable<String>(status);
+    }
+    map['sync_status'] = Variable<String>(syncStatus);
+    map['is_visible'] = Variable<bool>(isVisible);
+    map['created_at'] = Variable<String>(createdAt);
+    map['updated_at'] = Variable<String>(updatedAt);
+    return map;
+  }
+
+  FeuilleMaterielsCompanion toCompanion(bool nullToAbsent) {
+    return FeuilleMaterielsCompanion(
+      localId: Value(localId),
+      mobileUuid: Value(mobileUuid),
+      odooId: odooId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(odooId),
+      feuilleLocalId: Value(feuilleLocalId),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      serialNumber: serialNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serialNumber),
+      quantity: quantity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(quantity),
+      observation: observation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(observation),
+      status: status == null && nullToAbsent
+          ? const Value.absent()
+          : Value(status),
+      syncStatus: Value(syncStatus),
+      isVisible: Value(isVisible),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory FeuilleMateriel.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FeuilleMateriel(
+      localId: serializer.fromJson<int>(json['localId']),
+      mobileUuid: serializer.fromJson<String>(json['mobileUuid']),
+      odooId: serializer.fromJson<int?>(json['odooId']),
+      feuilleLocalId: serializer.fromJson<int>(json['feuilleLocalId']),
+      description: serializer.fromJson<String?>(json['description']),
+      serialNumber: serializer.fromJson<String?>(json['serialNumber']),
+      quantity: serializer.fromJson<double?>(json['quantity']),
+      observation: serializer.fromJson<String?>(json['observation']),
+      status: serializer.fromJson<String?>(json['status']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      isVisible: serializer.fromJson<bool>(json['isVisible']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+      updatedAt: serializer.fromJson<String>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'mobileUuid': serializer.toJson<String>(mobileUuid),
+      'odooId': serializer.toJson<int?>(odooId),
+      'feuilleLocalId': serializer.toJson<int>(feuilleLocalId),
+      'description': serializer.toJson<String?>(description),
+      'serialNumber': serializer.toJson<String?>(serialNumber),
+      'quantity': serializer.toJson<double?>(quantity),
+      'observation': serializer.toJson<String?>(observation),
+      'status': serializer.toJson<String?>(status),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'isVisible': serializer.toJson<bool>(isVisible),
+      'createdAt': serializer.toJson<String>(createdAt),
+      'updatedAt': serializer.toJson<String>(updatedAt),
+    };
+  }
+
+  FeuilleMateriel copyWith({
+    int? localId,
+    String? mobileUuid,
+    Value<int?> odooId = const Value.absent(),
+    int? feuilleLocalId,
+    Value<String?> description = const Value.absent(),
+    Value<String?> serialNumber = const Value.absent(),
+    Value<double?> quantity = const Value.absent(),
+    Value<String?> observation = const Value.absent(),
+    Value<String?> status = const Value.absent(),
+    String? syncStatus,
+    bool? isVisible,
+    String? createdAt,
+    String? updatedAt,
+  }) => FeuilleMateriel(
+    localId: localId ?? this.localId,
+    mobileUuid: mobileUuid ?? this.mobileUuid,
+    odooId: odooId.present ? odooId.value : this.odooId,
+    feuilleLocalId: feuilleLocalId ?? this.feuilleLocalId,
+    description: description.present ? description.value : this.description,
+    serialNumber: serialNumber.present ? serialNumber.value : this.serialNumber,
+    quantity: quantity.present ? quantity.value : this.quantity,
+    observation: observation.present ? observation.value : this.observation,
+    status: status.present ? status.value : this.status,
+    syncStatus: syncStatus ?? this.syncStatus,
+    isVisible: isVisible ?? this.isVisible,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  FeuilleMateriel copyWithCompanion(FeuilleMaterielsCompanion data) {
+    return FeuilleMateriel(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      mobileUuid: data.mobileUuid.present
+          ? data.mobileUuid.value
+          : this.mobileUuid,
+      odooId: data.odooId.present ? data.odooId.value : this.odooId,
+      feuilleLocalId: data.feuilleLocalId.present
+          ? data.feuilleLocalId.value
+          : this.feuilleLocalId,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      serialNumber: data.serialNumber.present
+          ? data.serialNumber.value
+          : this.serialNumber,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      observation: data.observation.present
+          ? data.observation.value
+          : this.observation,
+      status: data.status.present ? data.status.value : this.status,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      isVisible: data.isVisible.present ? data.isVisible.value : this.isVisible,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FeuilleMateriel(')
+          ..write('localId: $localId, ')
+          ..write('mobileUuid: $mobileUuid, ')
+          ..write('odooId: $odooId, ')
+          ..write('feuilleLocalId: $feuilleLocalId, ')
+          ..write('description: $description, ')
+          ..write('serialNumber: $serialNumber, ')
+          ..write('quantity: $quantity, ')
+          ..write('observation: $observation, ')
+          ..write('status: $status, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('isVisible: $isVisible, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    localId,
+    mobileUuid,
+    odooId,
+    feuilleLocalId,
+    description,
+    serialNumber,
+    quantity,
+    observation,
+    status,
+    syncStatus,
+    isVisible,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FeuilleMateriel &&
+          other.localId == this.localId &&
+          other.mobileUuid == this.mobileUuid &&
+          other.odooId == this.odooId &&
+          other.feuilleLocalId == this.feuilleLocalId &&
+          other.description == this.description &&
+          other.serialNumber == this.serialNumber &&
+          other.quantity == this.quantity &&
+          other.observation == this.observation &&
+          other.status == this.status &&
+          other.syncStatus == this.syncStatus &&
+          other.isVisible == this.isVisible &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class FeuilleMaterielsCompanion extends UpdateCompanion<FeuilleMateriel> {
+  final Value<int> localId;
+  final Value<String> mobileUuid;
+  final Value<int?> odooId;
+  final Value<int> feuilleLocalId;
+  final Value<String?> description;
+  final Value<String?> serialNumber;
+  final Value<double?> quantity;
+  final Value<String?> observation;
+  final Value<String?> status;
+  final Value<String> syncStatus;
+  final Value<bool> isVisible;
+  final Value<String> createdAt;
+  final Value<String> updatedAt;
+  const FeuilleMaterielsCompanion({
+    this.localId = const Value.absent(),
+    this.mobileUuid = const Value.absent(),
+    this.odooId = const Value.absent(),
+    this.feuilleLocalId = const Value.absent(),
+    this.description = const Value.absent(),
+    this.serialNumber = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.observation = const Value.absent(),
+    this.status = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.isVisible = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  FeuilleMaterielsCompanion.insert({
+    this.localId = const Value.absent(),
+    required String mobileUuid,
+    this.odooId = const Value.absent(),
+    required int feuilleLocalId,
+    this.description = const Value.absent(),
+    this.serialNumber = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.observation = const Value.absent(),
+    this.status = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.isVisible = const Value.absent(),
+    required String createdAt,
+    required String updatedAt,
+  }) : mobileUuid = Value(mobileUuid),
+       feuilleLocalId = Value(feuilleLocalId),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<FeuilleMateriel> custom({
+    Expression<int>? localId,
+    Expression<String>? mobileUuid,
+    Expression<int>? odooId,
+    Expression<int>? feuilleLocalId,
+    Expression<String>? description,
+    Expression<String>? serialNumber,
+    Expression<double>? quantity,
+    Expression<String>? observation,
+    Expression<String>? status,
+    Expression<String>? syncStatus,
+    Expression<bool>? isVisible,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (mobileUuid != null) 'mobile_uuid': mobileUuid,
+      if (odooId != null) 'odoo_id': odooId,
+      if (feuilleLocalId != null) 'feuille_local_id': feuilleLocalId,
+      if (description != null) 'description': description,
+      if (serialNumber != null) 'serial_number': serialNumber,
+      if (quantity != null) 'quantity': quantity,
+      if (observation != null) 'observation': observation,
+      if (status != null) 'status': status,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (isVisible != null) 'is_visible': isVisible,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  FeuilleMaterielsCompanion copyWith({
+    Value<int>? localId,
+    Value<String>? mobileUuid,
+    Value<int?>? odooId,
+    Value<int>? feuilleLocalId,
+    Value<String?>? description,
+    Value<String?>? serialNumber,
+    Value<double?>? quantity,
+    Value<String?>? observation,
+    Value<String?>? status,
+    Value<String>? syncStatus,
+    Value<bool>? isVisible,
+    Value<String>? createdAt,
+    Value<String>? updatedAt,
+  }) {
+    return FeuilleMaterielsCompanion(
+      localId: localId ?? this.localId,
+      mobileUuid: mobileUuid ?? this.mobileUuid,
+      odooId: odooId ?? this.odooId,
+      feuilleLocalId: feuilleLocalId ?? this.feuilleLocalId,
+      description: description ?? this.description,
+      serialNumber: serialNumber ?? this.serialNumber,
+      quantity: quantity ?? this.quantity,
+      observation: observation ?? this.observation,
+      status: status ?? this.status,
+      syncStatus: syncStatus ?? this.syncStatus,
+      isVisible: isVisible ?? this.isVisible,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (mobileUuid.present) {
+      map['mobile_uuid'] = Variable<String>(mobileUuid.value);
+    }
+    if (odooId.present) {
+      map['odoo_id'] = Variable<int>(odooId.value);
+    }
+    if (feuilleLocalId.present) {
+      map['feuille_local_id'] = Variable<int>(feuilleLocalId.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (serialNumber.present) {
+      map['serial_number'] = Variable<String>(serialNumber.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<double>(quantity.value);
+    }
+    if (observation.present) {
+      map['observation'] = Variable<String>(observation.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (isVisible.present) {
+      map['is_visible'] = Variable<bool>(isVisible.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FeuilleMaterielsCompanion(')
+          ..write('localId: $localId, ')
+          ..write('mobileUuid: $mobileUuid, ')
+          ..write('odooId: $odooId, ')
+          ..write('feuilleLocalId: $feuilleLocalId, ')
+          ..write('description: $description, ')
+          ..write('serialNumber: $serialNumber, ')
+          ..write('quantity: $quantity, ')
+          ..write('observation: $observation, ')
+          ..write('status: $status, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('isVisible: $isVisible, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5892,6 +6782,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FeuilleLignesTable feuilleLignes = $FeuilleLignesTable(this);
   late final $FeuilleFuelsTable feuilleFuels = $FeuilleFuelsTable(this);
   late final $FeuilleEmployesTable feuilleEmployes = $FeuilleEmployesTable(
+    this,
+  );
+  late final $FeuilleMaterielsTable feuilleMateriels = $FeuilleMaterielsTable(
     this,
   );
   @override
@@ -5908,6 +6801,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     feuilleLignes,
     feuilleFuels,
     feuilleEmployes,
+    feuilleMateriels,
   ];
 }
 
@@ -5916,6 +6810,8 @@ typedef $$ProjectsTableCreateCompanionBuilder =
       Value<int> localId,
       required int odooId,
       required String name,
+      Value<int?> partnerOdooId,
+      Value<String?> partnerName,
       Value<double?> dateDJ,
       Value<double?> dateDN,
       Value<bool> active,
@@ -5926,6 +6822,8 @@ typedef $$ProjectsTableUpdateCompanionBuilder =
       Value<int> localId,
       Value<int> odooId,
       Value<String> name,
+      Value<int?> partnerOdooId,
+      Value<String?> partnerName,
       Value<double?> dateDJ,
       Value<double?> dateDN,
       Value<bool> active,
@@ -5953,6 +6851,16 @@ class $$ProjectsTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get partnerOdooId => $composableBuilder(
+    column: $table.partnerOdooId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get partnerName => $composableBuilder(
+    column: $table.partnerName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6001,6 +6909,16 @@ class $$ProjectsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get partnerOdooId => $composableBuilder(
+    column: $table.partnerOdooId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get partnerName => $composableBuilder(
+    column: $table.partnerName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get dateDJ => $composableBuilder(
     column: $table.dateDJ,
     builder: (column) => ColumnOrderings(column),
@@ -6039,6 +6957,16 @@ class $$ProjectsTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get partnerOdooId => $composableBuilder(
+    column: $table.partnerOdooId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get partnerName => $composableBuilder(
+    column: $table.partnerName,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<double> get dateDJ =>
       $composableBuilder(column: $table.dateDJ, builder: (column) => column);
@@ -6084,6 +7012,8 @@ class $$ProjectsTableTableManager
                 Value<int> localId = const Value.absent(),
                 Value<int> odooId = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<int?> partnerOdooId = const Value.absent(),
+                Value<String?> partnerName = const Value.absent(),
                 Value<double?> dateDJ = const Value.absent(),
                 Value<double?> dateDN = const Value.absent(),
                 Value<bool> active = const Value.absent(),
@@ -6092,6 +7022,8 @@ class $$ProjectsTableTableManager
                 localId: localId,
                 odooId: odooId,
                 name: name,
+                partnerOdooId: partnerOdooId,
+                partnerName: partnerName,
                 dateDJ: dateDJ,
                 dateDN: dateDN,
                 active: active,
@@ -6102,6 +7034,8 @@ class $$ProjectsTableTableManager
                 Value<int> localId = const Value.absent(),
                 required int odooId,
                 required String name,
+                Value<int?> partnerOdooId = const Value.absent(),
+                Value<String?> partnerName = const Value.absent(),
                 Value<double?> dateDJ = const Value.absent(),
                 Value<double?> dateDN = const Value.absent(),
                 Value<bool> active = const Value.absent(),
@@ -6110,6 +7044,8 @@ class $$ProjectsTableTableManager
                 localId: localId,
                 odooId: odooId,
                 name: name,
+                partnerOdooId: partnerOdooId,
+                partnerName: partnerName,
                 dateDJ: dateDJ,
                 dateDN: dateDN,
                 active: active,
@@ -8684,6 +9620,370 @@ typedef $$FeuilleEmployesTableProcessedTableManager =
       FeuilleEmploye,
       PrefetchHooks Function()
     >;
+typedef $$FeuilleMaterielsTableCreateCompanionBuilder =
+    FeuilleMaterielsCompanion Function({
+      Value<int> localId,
+      required String mobileUuid,
+      Value<int?> odooId,
+      required int feuilleLocalId,
+      Value<String?> description,
+      Value<String?> serialNumber,
+      Value<double?> quantity,
+      Value<String?> observation,
+      Value<String?> status,
+      Value<String> syncStatus,
+      Value<bool> isVisible,
+      required String createdAt,
+      required String updatedAt,
+    });
+typedef $$FeuilleMaterielsTableUpdateCompanionBuilder =
+    FeuilleMaterielsCompanion Function({
+      Value<int> localId,
+      Value<String> mobileUuid,
+      Value<int?> odooId,
+      Value<int> feuilleLocalId,
+      Value<String?> description,
+      Value<String?> serialNumber,
+      Value<double?> quantity,
+      Value<String?> observation,
+      Value<String?> status,
+      Value<String> syncStatus,
+      Value<bool> isVisible,
+      Value<String> createdAt,
+      Value<String> updatedAt,
+    });
+
+class $$FeuilleMaterielsTableFilterComposer
+    extends Composer<_$AppDatabase, $FeuilleMaterielsTable> {
+  $$FeuilleMaterielsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mobileUuid => $composableBuilder(
+    column: $table.mobileUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get odooId => $composableBuilder(
+    column: $table.odooId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get feuilleLocalId => $composableBuilder(
+    column: $table.feuilleLocalId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get serialNumber => $composableBuilder(
+    column: $table.serialNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get observation => $composableBuilder(
+    column: $table.observation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isVisible => $composableBuilder(
+    column: $table.isVisible,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FeuilleMaterielsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FeuilleMaterielsTable> {
+  $$FeuilleMaterielsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mobileUuid => $composableBuilder(
+    column: $table.mobileUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get odooId => $composableBuilder(
+    column: $table.odooId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get feuilleLocalId => $composableBuilder(
+    column: $table.feuilleLocalId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get serialNumber => $composableBuilder(
+    column: $table.serialNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get observation => $composableBuilder(
+    column: $table.observation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isVisible => $composableBuilder(
+    column: $table.isVisible,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FeuilleMaterielsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FeuilleMaterielsTable> {
+  $$FeuilleMaterielsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get mobileUuid => $composableBuilder(
+    column: $table.mobileUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get odooId =>
+      $composableBuilder(column: $table.odooId, builder: (column) => column);
+
+  GeneratedColumn<int> get feuilleLocalId => $composableBuilder(
+    column: $table.feuilleLocalId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get serialNumber => $composableBuilder(
+    column: $table.serialNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => column);
+
+  GeneratedColumn<String> get observation => $composableBuilder(
+    column: $table.observation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isVisible =>
+      $composableBuilder(column: $table.isVisible, builder: (column) => column);
+
+  GeneratedColumn<String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$FeuilleMaterielsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FeuilleMaterielsTable,
+          FeuilleMateriel,
+          $$FeuilleMaterielsTableFilterComposer,
+          $$FeuilleMaterielsTableOrderingComposer,
+          $$FeuilleMaterielsTableAnnotationComposer,
+          $$FeuilleMaterielsTableCreateCompanionBuilder,
+          $$FeuilleMaterielsTableUpdateCompanionBuilder,
+          (
+            FeuilleMateriel,
+            BaseReferences<
+              _$AppDatabase,
+              $FeuilleMaterielsTable,
+              FeuilleMateriel
+            >,
+          ),
+          FeuilleMateriel,
+          PrefetchHooks Function()
+        > {
+  $$FeuilleMaterielsTableTableManager(
+    _$AppDatabase db,
+    $FeuilleMaterielsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FeuilleMaterielsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FeuilleMaterielsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FeuilleMaterielsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> localId = const Value.absent(),
+                Value<String> mobileUuid = const Value.absent(),
+                Value<int?> odooId = const Value.absent(),
+                Value<int> feuilleLocalId = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String?> serialNumber = const Value.absent(),
+                Value<double?> quantity = const Value.absent(),
+                Value<String?> observation = const Value.absent(),
+                Value<String?> status = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<bool> isVisible = const Value.absent(),
+                Value<String> createdAt = const Value.absent(),
+                Value<String> updatedAt = const Value.absent(),
+              }) => FeuilleMaterielsCompanion(
+                localId: localId,
+                mobileUuid: mobileUuid,
+                odooId: odooId,
+                feuilleLocalId: feuilleLocalId,
+                description: description,
+                serialNumber: serialNumber,
+                quantity: quantity,
+                observation: observation,
+                status: status,
+                syncStatus: syncStatus,
+                isVisible: isVisible,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> localId = const Value.absent(),
+                required String mobileUuid,
+                Value<int?> odooId = const Value.absent(),
+                required int feuilleLocalId,
+                Value<String?> description = const Value.absent(),
+                Value<String?> serialNumber = const Value.absent(),
+                Value<double?> quantity = const Value.absent(),
+                Value<String?> observation = const Value.absent(),
+                Value<String?> status = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<bool> isVisible = const Value.absent(),
+                required String createdAt,
+                required String updatedAt,
+              }) => FeuilleMaterielsCompanion.insert(
+                localId: localId,
+                mobileUuid: mobileUuid,
+                odooId: odooId,
+                feuilleLocalId: feuilleLocalId,
+                description: description,
+                serialNumber: serialNumber,
+                quantity: quantity,
+                observation: observation,
+                status: status,
+                syncStatus: syncStatus,
+                isVisible: isVisible,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FeuilleMaterielsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FeuilleMaterielsTable,
+      FeuilleMateriel,
+      $$FeuilleMaterielsTableFilterComposer,
+      $$FeuilleMaterielsTableOrderingComposer,
+      $$FeuilleMaterielsTableAnnotationComposer,
+      $$FeuilleMaterielsTableCreateCompanionBuilder,
+      $$FeuilleMaterielsTableUpdateCompanionBuilder,
+      (
+        FeuilleMateriel,
+        BaseReferences<_$AppDatabase, $FeuilleMaterielsTable, FeuilleMateriel>,
+      ),
+      FeuilleMateriel,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8706,4 +10006,6 @@ class $AppDatabaseManager {
       $$FeuilleFuelsTableTableManager(_db, _db.feuilleFuels);
   $$FeuilleEmployesTableTableManager get feuilleEmployes =>
       $$FeuilleEmployesTableTableManager(_db, _db.feuilleEmployes);
+  $$FeuilleMaterielsTableTableManager get feuilleMateriels =>
+      $$FeuilleMaterielsTableTableManager(_db, _db.feuilleMateriels);
 }
